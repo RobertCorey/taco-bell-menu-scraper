@@ -1,0 +1,16 @@
+{
+  "name": "taco-bell",
+  "version": "1.0.0",
+  "description": "exploits poor tacobell pricing structure",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "robertbcorey@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.3"
+  }
+}
