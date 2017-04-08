@@ -23,14 +23,28 @@ function getAll(params) {
   });
 }
 
+/**
+ * returns an array of ingredients contained in item
+ * @param {String} itemId 
+ */
 function getIngredients(itemId) {
+
   let options = {
-    uri: 'https://www.nutritionix.com/taco-bell/viewLabel/item/',
+    uri: `https://www.nutritionix.com/taco-bell/viewLabel/item/${itemId}`,
     transform: function (body) {
       return cheerio.load(body);
     }
   }
-  rp(options)
+
+  rp(options).then($ => {
+    let ingredients = [];
+    $('.weight strong').each((i, elem) => {
+      ingredients.push($(elem).html());
+    });
+    console.log(ingredients);
+    return ingredients;
+  });
 }
 
+getIngredients('166711');
 // getAll();
