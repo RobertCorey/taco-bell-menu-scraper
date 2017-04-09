@@ -1,5 +1,6 @@
 let rp = require('request-promise-native');
 let cheerio = require('cheerio');
+var jsonfile = require('jsonfile');
 
 function getAll(params) {
   var options = {
@@ -9,18 +10,36 @@ function getAll(params) {
     }
   };
   let items = [];
-  rp(options).then($ => {
-    $('.nmItem').each((i, elem) => {
-      let obj = $(elem);
-      let item = {
-        "name": obj.html(),
-        "id": obj.attr('id').split('-')[2]
-      };
-      console.log(item);
-      items.push(item);
+  return new Promise((resolve, reject) => {
+    rp(options).then($ => {
+      let getIngredientsPromises = [];
+      $('.nmItem').each((i, elem) => {
+        let obj = $(elem);
+        let item = {
+          "name": obj.html(),
+          "id": obj.attr('id').split('-')[2]
+        };
+
+        getIngredientsPromises.push(
+          getIngredients(item.id)
+          .then(value => {
+            item.ingredients = value;
+            items.push(item);
+          })
+          .catch(error => {
+            throw new Error(error);
+          })
+        );
+      });
+
+      Promise.all(getIngredientsPromises).then(() => {
+        resolve(items);
+      }).catch(error => {
+        reject(error);
+      })
+
     });
-    return items;
-  });
+  })
 }
 
 /**
@@ -28,7 +47,6 @@ function getAll(params) {
  * @param {String} itemId 
  */
 function getIngredients(itemId) {
-
   let options = {
     uri: `https://www.nutritionix.com/taco-bell/viewLabel/item/${itemId}`,
     transform: function (body) {
@@ -36,15 +54,15 @@ function getIngredients(itemId) {
     }
   }
 
-  rp(options).then($ => {
+  return rp(options).then($ => {
     let ingredients = [];
     $('.weight strong').each((i, elem) => {
       ingredients.push($(elem).html());
     });
-    console.log(ingredients);
     return ingredients;
   });
 }
 
-getIngredients('166711');
-// getAll();
+getAll().then(value => {
+  jsonfile.writeFileSync('menu.json', value, {spaces: 2});
+});
